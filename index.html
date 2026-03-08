@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google 搜索模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 20px;
+            gap: 15px;
+        }
+
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        .header a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .apps-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+            filter: brightness(0) invert(1);
+        }
+
+        .apps-icon:hover {
+            opacity: 1;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: transform 0.2s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        /* 主容器 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin-top: -50px;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 90px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            letter-spacing: -3px;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .logo .g1 { color: #4285f4; }
+        .logo .o1 { color: #ea4335; }
+        .logo .o2 { color: #fbbc05; }
+        .logo .g2 { color: #4285f4; }
+        .logo .l { color: #34a853; }
+        .logo .e { color: #ea4335; transform: rotate(-10deg); display: inline-block; }
+
+        /* 搜索框容器 */
+        .search-container {
+            width: 100%;
+            max-width: 584px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            height: 46px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.95);
+            padding: 0 45px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .search-box:focus {
+            background: white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9aa0a6;
+            width: 20px;
+            height: 20px;
+        }
+
+        .mic-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #4285f4;
+            width: 24px;
+            height: 24px;
+        }
+
+        /* 按钮组 */
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        /* 语言提示 */
+        .language {
+            margin-top: 25px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .language a {
+            color: #aecbfa;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        .language a:hover {
+            text-decoration: underline;
+        }
+
+        /* 底部 */
+        .footer {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .footer-country {
+            padding: 15px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8);
+            font-size: 15px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 30px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-logo {
+            font-size: 24px;
+            font-weight: 500;
+            color: #4285f4;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: #202124;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 16px;
+            color: #5f6368;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66,133,244,0.2);
+        }
+
+        .form-group input.error {
+            border-color: #d93025;
+        }
+
+        .error-message {
+            color: #d93025;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+
+        .remember-me input {
+            width: 18px;
+            height: 18px;
+            accent-color: #4285f4;
+        }
+
+        .forgot-link {
+            color: #4285f4;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #3367d6;
+            box-shadow: 0 4px 12px rgba(66,133,244,0.4);
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #dadce0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #5f6368;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .social-btn:hover {
+            background: #f8f9fa;
+            border-color: #4285f4;
+        }
+
+        .switch-mode {
+            text-align: center;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .switch-mode a {
+            color: #4285f4;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .switch-mode a:hover {
+            text-decoration: underline;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #f1f3f4;
+            color: #202124;
+        }
+
+        /* 用户下拉菜单 */
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 10px 0;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .user-dropdown.active {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #3c4043;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #dadce0;
+            margin: 8px 0;
+        }
+
+        /* 搜索结果页面 */
+        .search-results {
+            display: none;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ebebeb;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .results-logo {
+            font-size: 24px;
+            margin-right: 30px;
+            font-weight: 500;
+        }
+
+        .results-search-box {
+            flex: 1;
+            max-width: 692px;
+            position: relative;
+        }
+
+        .results-search-input {
+            width: 100%;
+            height: 44px;
+            border-radius: 24px;
+            border: 1px solid #dfe1e5;
+            padding: 0 40px;
+            font-size: 16px;
+            outline: none;
+            box-shadow: none;
+            transition: box-shadow 0.2s;
+        }
+
+        .results-search-input:focus {
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+        }
+
+        .results-container {
+            max-width: 652px;
+            margin: 20px 0 0 150px;
+            padding: 0 20px;
+        }
+
+        .result-stats {
+            color: #70757a;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+
+        .result-url {
+            color: #202124;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-title {
+            color: #1a0dab;
+            font-size: 20px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .result-title:hover {
+            text-decoration: underline;
+        }
+
+        .result-title:visited {
+            color: #660099;
+        }
+
+        .result-desc {
+            color: #4d5156;
+            font-size: 14px;
+            line-height: 1.58;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 60px;
+            }
+            
+            .results-container {
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主页面 -->
+    <div id="homePage">
+        <div class="header">
+            <a href="#" onclick="showModal('login')">Gmail</a>
+            <a href="#" onclick="showModal('login')">图片</a>
+            <div class="user-menu">
+                <svg class="apps-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6,8c1.1,0,2-0.9,2-2s-0.9-2-2-2S4,5.1,4,6S4.9,8,6,8z M12,20c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S10.9,20,12,20z M6,20c1.1,0,2-0.9,2-2s-0.9-2-2-2S4,17.1,4,18S4.9,20,6,20z M6,14c1.1,0,2-0.9,2-2s-0.9-2-2-2S4,11.1,4,12S4.9,14,6,14z M12,14c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S10.9,14,12,14z M18,6c0,1.1,0.9,2,2,2s2-0.9,2-2s-0.9-2-2-2S18,4.9,18,6z M12,8c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S10.9,8,12,8z M18,14c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S16.9,14,18,14z M18,20c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S16.9,20,18,20z"/>
+                </svg>
+                <div class="avatar" id="userAvatar" onclick="toggleDropdown()" style="display: none;">U</div>
+                <button class="btn" id="loginBtn" onclick="showModal('login')" style="background: #4285f4; border: none; font-weight: 500;">登录</button>
+            </div>
+            
+            <!-- 用户下拉菜单 -->
+            <div class="user-dropdown" id="userDropdown">
+                <div class="dropdown-item" onclick="showProfile()">
+                    <span>👤</span> 个人资料
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" onclick="logout()">
+                    <span>🚪</span> 退出登录
+                </div>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="logo">
+                <span class="g1">G</span><span class="o1">o</span><span class="o2">o</span><span class="g2">g</span><span class="l">l</span><span class="e">e</span>
+            </div>
+
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <input type="text" class="search-box" id="searchInput" placeholder="在 Google 上搜索，或者输入一个网址" onkeypress="handleSearch(event)">
+                <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+            </div>
+
+            <div class="buttons">
+                <button class="btn" onclick="performSearch()">Google 搜索</button>
+                <button class="btn" onclick="feelingLucky()">手气不错</button>
+            </div>
+
+            <div class="language">
+                Google 提供：English · 繁体中文 · 日本語 · 한국어
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在搜索...</p>
+        </div>
+
+        <div class="footer">
+            <div class="footer-country">中国</div>
+            <div class="footer-links">
+                <div>
+                    <a href="#">关于 Google</a>
+                    <a href="#">广告</a>
+                    <a href="#">商务</a>
+                    <a href="#">搜索运作方式</a>
+                </div>
+                <div>
+                    <a href="#">隐私权</a>
+                    <a href="#">条款</a>
+                    <a href="#" onclick="showModal('login')">设置</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索结果页面 -->
+    <div class="search-results" id="searchResults">
+        <div class="results-header">
+            <div class="results-logo">
+                <span style="color: #4285f4">G</span><span style="color: #ea4335">o</span><span style="color: #fbbc05">o</span><span style="color: #4285f4">g</span><span style="color: #34a853">l</span><span style="color: #ea4335">e</span>
+            </div>
+            <div class="results-search-box">
+                <input type="text" class="results-search-input" id="resultsSearchInput" onkeypress="handleResultsSearch(event)">
+            </div>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                <div class="avatar" id="resultsAvatar" style="display: none;">U</div>
+                <button class="btn" id="resultsLoginBtn" onclick="showModal('login')" style="background: #4285f4; color: white; border: none;">登录</button>
+            </div>
+        </div>
+        
+        <div class="results-container" id="resultsContainer">
+            <!-- 搜索结果将动态插入这里 -->
+        </div>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="hideModal()">✕</button>
+            
+            <div class="modal-header">
+                <div class="modal-logo">Google</div>
+                <div class="modal-title" id="modalTitle">登录</div>
+                <div class="modal-subtitle" id="modalSubtitle">使用您的 Google 帐号</div>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group" id="nameGroup" style="display: none;">
+                    <label>姓名</label>
+                    <input type="text" id="fullName" placeholder="请输入您的姓名">
+                    <div class="error-message" id="nameError">请输入姓名</div>
+                </div>
+
+                <div class="form-group">
+                    <label>电子邮箱或手机号</label>
+                    <input type="text" id="email" placeholder="请输入邮箱或手机号" required>
+                    <div class="error-message" id="emailError">请输入有效的邮箱地址</div>
+                </div>
+
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" required>
+                    <div class="error-message" id="passwordError">密码至少需要6位</div>
+                </div>
+
+                <div class="form-group" id="confirmGroup" style="display: none;">
+                    <label>确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入密码">
+                    <div class="error-message" id="confirmError">两次输入的密码不一致</div>
+                </div>
+
+                <div class="form-options" id="loginOptions">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>保持登录状态</span>
+                    </label>
+                    <a href="#" class="forgot-link">忘记密码？</a>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">下一步</button>
+            </form>
+
+            <div class="divider">
+                <span>或</span>
+            </div>
+
+            <div class="social-login">
+                <button class="social-btn" onclick="socialLogin('微信')">
+                    <span>💬</span> 微信
+                </button>
+                <button class="social-btn" onclick="socialLogin('GitHub')">
+                    <span>🐙</span> GitHub
+                </button>
+            </div>
+
+            <div class="switch-mode">
+                <span id="switchText">还没有帐号？</span>
+                <a onclick="toggleAuthMode()" id="switchLink">创建帐号</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 用户数据存储（使用 localStorage 模拟）
+        let currentUser = null;
+        let isLoginMode = true;
+
+        // 模拟搜索数据
+        const mockResults = {
+            'html': [
+                { title: 'HTML 教程 | MDN Web Docs', url: 'developer.mozilla.org › Web › HTML', desc: 'HTML（超文本标记语言）是用于构建 Web 内容及其含义的基础技术。HTML 使用"标记"来标注文本、图像和其他内容，以便在 Web 浏览器中显示。' },
+                { title: 'HTML 基础教程 - 菜鸟教程', url: 'www.runoob.com › html', desc: 'HTML 教程- (HTML5 标准) 超文本标记语言（英语：HyperText Markup Language，简称：HTML）是一种用于创建网页的标准标记语言。' },
+                { title: 'HTML: HyperText Markup Language | MDN', url: 'developer.mozilla.org › HTML', desc: 'HTML (HyperText Markup Language) 是构建 Web 的最基础语言。它定义了 Web 内容的含义和结构。除 HTML 以外的其它技术则通常用来描述 Web 页面的表现形式。' }
+            ],
+            'css': [
+                { title: 'CSS 教程 | MDN Web Docs', url: 'developer.mozilla.org › Web › CSS', desc: '层叠样式表 (Cascading Style Sheets，缩写为 CSS），是一种 样式表 语言，用来描述 HTML 或 XML（包括如 SVG、MathML、XHTML 之类的 XML 分支语言）文档的呈现。' },
+                { title: 'CSS 基础教程 - 菜鸟教程', url: 'www.runoob.com › css', desc: 'CSS 教程 CSS 指层叠样式表 (Cascading Style Sheets)，样式定义如何显示 HTML 元素，样式通常存储在样式表中。' }
+            ],
+            'javascript': [
+                { title: 'JavaScript | MDN Web Docs', url: 'developer.mozilla.org › JavaScript', desc: 'JavaScript (JS) 是一种具有函数优先的轻量级，解释型或即时编译型的编程语言。虽然它是作为开发 Web 页面的脚本语言而出名。' },
+                { title: 'JavaScript 教程 - 菜鸟教程', url: 'www.runoob.com › js', desc: 'JavaScript 是 Web 的编程语言。所有现代的 HTML 页面都使用 JavaScript。JavaScript 非常容易学。' }
+            ],
+            'python': [
+                { title: 'Python 教程 | 菜鸟教程', url: 'www.runoob.com › python3', desc: 'Python 是一种解释型、面向对象、动态数据类型的高级程序设计语言。Python 由 Guido van Rossum 于 1989 年底发明，第一个公开发行版发行于 1991 年。' },
+                { title: 'Welcome to Python.org', url: 'www.python.org', desc: 'Python is a programming language that lets you work quickly and integrate systems more effectively. Learn more about Python.' }
+            ]
+        };
+
+        // 初始化
+        window.onload = function() {
+            checkLoginStatus();
+            
+            // 点击外部关闭下拉菜单
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('userDropdown');
+                const avatar = document.getElementById('userAvatar');
+                if (!avatar.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        };
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('googleUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUIForLoggedInUser();
+            }
+        }
+
+        // 更新 UI 为登录状态
+        function updateUIForLoggedInUser() {
+            const avatar = document.getElementById('userAvatar');
+            const loginBtn = document.getElementById('loginBtn');
+            const resultsAvatar = document.getElementById('resultsAvatar');
+            const resultsLoginBtn = document.getElementById('resultsLoginBtn');
+            
+            if (currentUser) {
+                const initial = currentUser.name ? currentUser.name[0].toUpperCase() : 'U';
+                avatar.textContent = initial;
+                avatar.style.display = 'flex';
+                if(resultsAvatar) {
+                    resultsAvatar.textContent = initial;
+                    resultsAvatar.style.display = 'flex';
+                }
+                loginBtn.style.display = 'none';
+                if(resultsLoginBtn) resultsLoginBtn.style.display = 'none';
+            }
+        }
+
+        // 显示模态框
+        function showModal(type) {
+            const overlay = document.getElementById('modalOverlay');
+            const title = document.getElementById('modalTitle');
+            const subtitle = document.getElementById('modalSubtitle');
+            const nameGroup = document.getElementById('nameGroup');
+            const confirmGroup = document.getElementById('confirmGroup');
+            const loginOptions = document.getElementById('loginOptions');
+            const switchText = document.getElementById('switchText');
+            const switchLink = document.getElementById('switchLink');
+            const submitBtn = document.getElementById('submitBtn');
+
+            overlay.classList.add('active');
+            
+            if (type === 'login') {
+                isLoginMode = true;
+                title.textContent = '登录';
+                subtitle.textContent = '使用您的 Google 帐号';
+                nameGroup.style.display = 'none';
+                confirmGroup.style.display = 'none';
+                loginOptions.style.display = 'flex';
+                switchText.textContent = '还没有帐号？';
+                switchLink.textContent = '创建帐号';
+                submitBtn.textContent = '下一步';
+            } else {
+                isLoginMode = false;
+                title.textContent = '创建 Google 帐号';
+                subtitle.textContent = '请输入您的信息';
+                nameGroup.style.display = 'block';
+                confirmGroup.style.display = 'block';
+                loginOptions.style.display = 'none';
+                switchText.textContent = '已有帐号？';
+                switchLink.textContent = '登录';
+                submitBtn.textContent = '创建帐号';
+            }
+            
+            // 清空表单
+            document.getElementById('authForm').reset();
+            clearErrors();
+        }
+
+        // 隐藏模态框
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // 关闭模态框（点击外部）
+        function closeModal(event) {
+            if (event.target === event.currentTarget) {
+                hideModal();
+            }
+        }
+
+        // 切换登录/注册模式
+        function toggleAuthMode() {
+            showModal(isLoginMode ? 'register' : 'login');
+        }
+
+        // 处理认证
+        function handleAuth(e) {
+            e.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            let hasError = false;
+
+            // 验证邮箱
+            if (!email.includes('@') || !email.includes('.')) {
+                showError('email', 'emailError');
+                hasError = true;
+            }
+
+            // 验证密码
+            if (password.length < 6) {
+                showError('password', 'passwordError');
+                hasError = true;
+            }
+
+            if (!isLoginMode) {
+                // 注册模式额外验证
+                if (!fullName.trim()) {
+                    showError('fullName', 'nameError');
+                    hasError = true;
+                }
+                if (password !== confirmPassword) {
+                    showError('confirmPassword', 'confirmError');
+                    hasError = true;
+                }
+            }
+
+            if (hasError) return;
+
+            // 模拟 API 调用
+            setTimeout(() => {
+                if (isLoginMode) {
+                    // 检查用户是否存在
+                    const users = JSON.parse(localStorage.getItem('googleUsers') || '[]');
+                    const user = users.find(u => u.email === email && u.password === password);
+                    
+                    if (user) {
+                        currentUser = user;
+                        if (document.getElementById('rememberMe').checked) {
+                            localStorage.setItem('googleUser', JSON.stringify(user));
+                        }
+                        updateUIForLoggedInUser();
+                        hideModal();
+                        showToast('登录成功！欢迎回来，' + user.name);
+                    } else {
+                        showToast('邮箱或密码错误');
+                    }
+                } else {
+                    // 注册新用户
+                    const users = JSON.parse(localStorage.getItem('googleUsers') || '[]');
+                    
+                    if (users.find(u => u.email === email)) {
+                        showToast('该邮箱已被注册');
+                        return;
+                    }
+
+                    const newUser = {
+                        name: fullName,
+                        email: email,
+                        password: password
+                    };
+
+                    users.push(newUser);
+                    localStorage.setItem('googleUsers', JSON.stringify(users));
+                    
+                    currentUser = newUser;
+                    localStorage.setItem('googleUser', JSON.stringify(newUser));
+                    updateUIForLoggedInUser();
+                    hideModal();
+                    showToast('帐号创建成功！欢迎，' + fullName);
+                }
+            }, 800);
+        }
+
+        // 显示错误
+        function showError(inputId, errorId) {
+            document.getElementById(inputId).classList.add('error');
+            document.getElementById(errorId).style.display = 'block';
+        }
+
+        // 清除错误
+        function clearErrors() {
+            const inputs = document.querySelectorAll('input');
+            const errors = document.querySelectorAll('.error-message');
+            inputs.forEach(input => input.classList.remove('error'));
+            errors.forEach(error => error.style.display = 'none');
+        }
+
+        // 社交登录
+        function socialLogin(platform) {
+            showToast('正在使用 ' + platform + ' 登录...');
+            setTimeout(() => {
+                const mockUser = {
+                    name: platform + '用户',
+                    email: 'user@' + platform.toLowerCase() + '.com',
+                    password: 'social'
+                };
+                currentUser = mockUser;
+                localStorage.setItem('googleUser', JSON.stringify(mockUser));
+                updateUIForLoggedInUser();
+                hideModal();
+                showToast(platform + ' 登录成功！');
+            }, 1000);
+        }
+
+        // 切换下拉菜单
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        // 显示个人资料
+        function showProfile() {
+            if (currentUser) {
+                showToast('当前用户：' + currentUser.name + ' (' + currentUser.email + ')');
+            }
+            document.getElementById('userDropdown').classList.remove('active');
+        }
+
+        // 退出登录
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('googleUser');
+            
+            document.getElementById('userAvatar').style.display = 'none';
+            document.getElementById('loginBtn').style.display = 'block';
+            
+            const resultsAvatar = document.getElementById('resultsAvatar');
+            const resultsLoginBtn = document.getElementById('resultsLoginBtn');
+            if (resultsAvatar) resultsAvatar.style.display = 'none';
+            if (resultsLoginBtn) resultsLoginBtn.style.display = 'block';
+            
+            document.getElementById('userDropdown').classList.remove('active');
+            showToast('已成功退出登录');
+        }
+
+        // 搜索功能
+        function handleSearch(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        function handleResultsSearch(e) {
+            if (e.key === 'Enter') {
+                const query = document.getElementById('resultsSearchInput').value;
+                displayResults(query);
+            }
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showToast('请输入搜索内容');
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.main-container').style.opacity = '0.3';
+
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.main-container').style.opacity = '1';
+                displayResults(query);
+            }, 800);
+        }
+
+        function feelingLucky() {
+            const queries = ['html', 'css', 'javascript', 'python'];
+            const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+            document.getElementById('searchInput').value = randomQuery;
+            performSearch();
+        }
+
+        function displayResults(query) {
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'block';
+            document.getElementById('resultsSearchInput').value = query;
+
+            const container = document.getElementById('resultsContainer');
+            const lowerQuery = query.toLowerCase();
+            
+            // 查找匹配的结果
+            let results = [];
+            for (let key in mockResults) {
+                if (lowerQuery.includes(key) || key.includes(lowerQuery)) {
+                    results = results.concat(mockResults[key]);
+                }
+            }
+
+            // 如果没有精确匹配，显示通用结果
+            if (results.length === 0) {
+                results = [
+                    { title: query + ' - 搜索结果', url: 'www.example.com › search', desc: '这是关于 ' + query + ' 的搜索结果的模拟描述。在实际应用中，这里会显示从搜索引擎获取的真实结果。' },
+                    { title: query + ' 的相关信息', url: 'www.wikipedia.org › wiki', desc: '维基百科中关于 ' + query + ' 的详细介绍，包含定义、历史背景、技术细节和应用场景。' },
+                    { title: 'GitHub - ' + query + ' 相关项目', url: 'github.com › search', desc: '在 GitHub 上找到 ' + query + ' 相关的开源项目、代码示例和开发资源。' }
+                ];
+            }
+
+            // 生成结果 HTML
+            let html = '<div class="result-stats">找到约 ' + (Math.floor(Math.random() * 1000000) + 100000).toLocaleString() + ' 条结果 （用时 ' + (Math.random() * 0.5).toFixed(2) + ' 秒）</div>';
+            
+            results.forEach(result => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-url">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f1f3f4; border-radius: 50%; margin-right: 12px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#5f6368">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                </svg>
+                            </span>
+                            ${result.url}
+                        </div>
+                        <a href="#" class="result-title" onclick="showToast('正在访问: ${result.title}')">${result.title}</a>
+                        <div class="result-desc">${result.desc}</div>
+                    </div>
+                `;
+            });
+
+            // 添加分页
+            html += `
+                <div style="margin-top: 40px; display: flex; gap: 20px; align-items: center;">
+                    <span style="color: #4285f4; font-weight: 500; cursor: pointer;">1</span>
+                    <span style="color: #4285f4; cursor: pointer;">2</span>
+                    <span style="color: #4285f4; cursor: pointer;">3</span>
+                    <span style="color: #4285f4; cursor: pointer;">4</span>
+                    <span style="color: #4285f4; cursor: pointer;">5</span>
+                    <span style="color: #4285f4; cursor: pointer;">下一页 ></span>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            window.scrollTo(0, 0);
+        }
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 返回首页（通过 Logo 点击）
+        document.querySelector('.results-logo')?.addEventListener('click', function() {
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('homePage').style.display = 'block';
+            document.getElementById('searchInput').value = '';
+        });
+    </script>
+</body>
+</html>
